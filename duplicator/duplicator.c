@@ -18,14 +18,31 @@ int main(int argc, char **argv){
         return EXIT_SUCCESS;
     }
 
+    // get the current directory so that the .bat script can navigate to here and run the ldd command
     int dirStringSize = 512;
     char *dirString;
     GetCurrentDirectory(dirStringSize, dirString);
 
-    FILE *duplicatorBat = fopen("duplicator.bat", "w");
-    fprintf(duplicatorBat, "d:\ncd %s\nldd %s\npause", dirString, argv[1]);
+    // pretest.bat
+    // used to test if ldd.exe exists and is in the environment path
+    FILE *pretestBat = fopen("pretest.bat", "w");
+    char driveDirectory[3]; // driveDirectory variable to record the drive path (e.g. "D:", "C:")
+    strncpy(driveDirectory, dirString, 2); // copy the first two char (the drive directory)
+    driveDirectory[2] = '\0'; // close the string
 
-    ShellExecuteA(NULL, "runas", "duplicator.bat", NULL, dirString, SW_SHOWDEFAULT);
+    char *batScript =   "set lddPathList=where ldd\n"
+                        "\%lddPathList\% > lddPathList.txt";
+
+    // write into pretest.bat
+    // 1. check where the current directory is (where is the p)
+    fprintf(pretestBat, "%s\ncd %s\n%s", driveDirectory, dirString, batScript);
+    fclose(pretestBat);
+
+    FILE *duplicatorBat = fopen("duplicator.bat", "w");
+    fprintf(duplicatorBat, "d:\ncd %s\nwhere ldd\nldd %s\npause", dirString, argv[1]);
+
+    ShellExecuteA(NULL, "runas", "pretest.bat", NULL, NULL, SW_SHOWDEFAULT);
+    GetLastError();
 }
 
 void printHelp(){
