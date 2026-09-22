@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <unistd.h>
+
 #include <windows.h>
 #include <psapi.h>
 
@@ -88,9 +90,40 @@ int executeScript(const char *filename){
     printf("last error? %u\n", GetLastError());
 
     DEBUG_EVENT ev;
-    WaitForDebugEvent(&ev, INFINITE);
 
-    printf("debug code? %u\n", ev.dwDebugEventCode);
+    while (1){
+        printf("waiting debug\n");
+        WaitForDebugEvent(&ev, INFINITE);
+
+        printf("debug code? %u\n", ev.dwDebugEventCode);
+        printf("createprocessinfo? %p\n", ev.u.CreateProcessInfo.lpBaseOfImage);
+        
+        LPVOID lpbuffer = malloc(4096);
+        size_t bytesread;
+        WINBOOL canreadprocess;
+        PIMAGE_DOS_HEADER dosheader = (PIMAGE_DOS_HEADER) alloca (4096);
+        PIMAGE_NT_HEADERS ntheader;
+        PVOID entry;
+        static const unsigned char int3 = 0xcc;
+        if(canreadprocess = ReadProcessMemory(pi.hProcess, ev.u.CreateProcessInfo.lpBaseOfImage, dosheader, 4096, &bytesread)){
+
+        }else{
+            printf("error");
+        }
+        printf("canreadprocess? %d\n", canreadprocess);
+
+        // ntheader = (PIMAGE_NT_HEADERS)((PBYTE) dosheader + dosheader->e_lfanew);
+        // entry = ev.u.CreateProcessInfo.lpBaseOfImage + ntheader->OptionalHeader.AddressOfEntryPoint;
+        // WINBOOL canwrite = WriteProcessMemory(pi.hProcess, entry, &int3, 1, &bytesread);
+        // printf("canwrite? %d\n", canwrite);
+        sleep(1);
+        ContinueDebugEvent(ev.dwProcessId, ev.dwThreadId, DBG_CONTINUE);
+    }
+
+    wchar_t dllname[256];
+    int someint = 10;
+    //GetFinalPathNameByHandleW(ev.u.LoadDll.hFile, dllname, PATH_MAX, 0);
+    printf("test extract dll: %p\nsomeintp: %p\n", ev.u.LoadDll.lpBaseOfDll, &someint);
 
     return 0;
 }
