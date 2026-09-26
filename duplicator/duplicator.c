@@ -96,7 +96,18 @@ int executeScript(const char *filename){
         WaitForDebugEvent(&ev, INFINITE);
 
         printf("debug code? %u\n", ev.dwDebugEventCode);
-        printf("createprocessinfo? %p\n", ev.u.CreateProcessInfo.lpBaseOfImage);
+        // printf("createprocessinfo? %p\n", ev.u.CreateProcessInfo.lpBaseOfImage);
+
+        if (ev.dwDebugEventCode == LOAD_DLL_DEBUG_EVENT){
+            printf("dll address? %p\n", ev.u.LoadDll.lpBaseOfDll);
+            wchar_t *dllname = (wchar_t*) malloc(1024 * sizeof(wchar_t));
+            LPSTR dlname = malloc (sizeof(char) * 1024);
+            DWORD gfea = GetModuleFileNameExW(h, (HMODULE) ev.u.LoadDll.lpBaseOfDll, dllname, 1024);
+            printf("dll name: %ls %u\n", dllname, gfea);
+            wchar_t dllname2[1024];
+            GetFinalPathNameByHandleW(ev.u.LoadDll.hFile, dllname2, 1024, 0);
+            printf("dll name2: %ls\n", dllname2);
+        }
         
         LPVOID lpbuffer = malloc(4096);
         size_t bytesread;
@@ -104,13 +115,6 @@ int executeScript(const char *filename){
         PIMAGE_DOS_HEADER dosheader = (PIMAGE_DOS_HEADER) alloca (4096);
         PIMAGE_NT_HEADERS ntheader;
         PVOID entry;
-        static const unsigned char int3 = 0xcc;
-        if(canreadprocess = ReadProcessMemory(pi.hProcess, ev.u.CreateProcessInfo.lpBaseOfImage, dosheader, 4096, &bytesread)){
-
-        }else{
-            printf("error");
-        }
-        printf("canreadprocess? %d\n", canreadprocess);
 
         // ntheader = (PIMAGE_NT_HEADERS)((PBYTE) dosheader + dosheader->e_lfanew);
         // entry = ev.u.CreateProcessInfo.lpBaseOfImage + ntheader->OptionalHeader.AddressOfEntryPoint;
