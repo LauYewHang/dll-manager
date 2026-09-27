@@ -20,4 +20,5 @@
     LPWSTR get_dll_path(HANDLE dll_handle);
     void print_dll_list(dll_linked_list* list);
     bool save_dll_list(dll_linked_list* list, LPWSTR destination_path);
+    bool copy_dll_list(dll_linked_list* list, LPWSTR destination_path);
 #endif

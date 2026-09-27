@@ -4,6 +4,7 @@
 
 #include <windows.h>
 #include <psapi.h>
+#include <winbase.h>
 
 #include "dllduplicator.h"
 
@@ -99,4 +100,33 @@ bool save_dll_list(dll_linked_list* list, LPWSTR destination_path){
     }
 
     return 0;
+}
+
+bool copy_dll_list(dll_linked_list* list, LPWSTR destination_path){
+    char* copy_path = (char*) malloc(sizeof(char) * MAX_PATH);
+    if (destination_path == NULL){
+        copy_path[0] = '\0';
+    }else {
+        wcstombs(copy_path, destination_path, MAX_PATH);
+    }
+
+    char* mkdir_command = (char*) malloc(sizeof(char) * MAX_PATH * 2);
+    strncpy(mkdir_command, "mkdir ", MAX_PATH);
+    strcat(mkdir_command, copy_path);
+    system(mkdir_command);
+
+    dll_linked_list* list_pointer = list;
+    while (list_pointer->current != NULL){
+        char* file_path = (char*) malloc(sizeof(char) * MAX_PATH);
+        wcstombs(file_path, list_pointer->current->dll_path, MAX_PATH);
+
+        char* copy_command = (char*) malloc(sizeof(char) * MAX_PATH * 3);
+        strncpy(copy_command, "copy ", MAX_PATH);
+        strcat(copy_command, file_path);
+        strcat(copy_command, " ");
+        strcat(copy_command, copy_path);
+        system(copy_command);
+
+        list_pointer = list_pointer->next;
+    }
 }
