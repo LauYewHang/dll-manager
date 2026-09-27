@@ -77,3 +77,26 @@ void print_dll_list(dll_linked_list* list){
         list_pointer = list_pointer->next;
     }
 }
+
+bool save_dll_list(dll_linked_list* list, LPWSTR destination_path){
+    FILE* save_file;
+    if (destination_path == NULL){
+        save_file = fopen("dll_list.txt", "w");
+    }else {
+        char* file_path = (char*) malloc(sizeof(char) * MAX_PATH);
+        wcstombs(file_path, destination_path, MAX_PATH);
+    }
+
+    if (save_file){
+        dll_linked_list* list_pointer = list;
+
+        while (list_pointer->current != NULL){
+            fprintf(save_file, "%ls\n", list_pointer->current->dll_path);
+            list_pointer = list_pointer->next;
+        }
+
+        return 1;
+    }
+
+    return 0;
+}
