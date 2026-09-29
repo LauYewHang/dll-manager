@@ -102,7 +102,7 @@ LPWSTR get_dll_path(HANDLE dll_handle, bool verbose){
     wcsncpy(path_name, path_name + 4, wcslen(path_name));
 
     if (verbose)
-        printf("%s Gotten dll path name - %ls.\n", path_name);
+        printf("%s Gotten dll path name - %ls.\n", VERBOSE_GET_DLL_PATH, path_name);
 
     return get_path_result <= MAX_PATH ? path_name : NULL;
 }
@@ -123,12 +123,13 @@ bool save_dll_list(dll_linked_list* list, LPWSTR destination_path, bool verbose)
     if (verbose)
         printf("%s Saving dll list to '%ls'.\n", VERBOSE_SAVE_DLL_LIST, destination_path);
 
-    FILE* save_file;
+    FILE* save_file = NULL;
     if (destination_path == NULL){
         save_file = fopen("dll_list.txt", "w");
     } else {
         char* file_path = (char*) malloc(sizeof(char) * MAX_PATH);
         wcstombs(file_path, destination_path, MAX_PATH);
+        save_file = fopen(file_path, "w");
     }
 
     if (save_file){
