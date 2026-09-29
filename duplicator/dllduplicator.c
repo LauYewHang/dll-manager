@@ -17,8 +17,8 @@ dll_linked_list* get_executable_dll(LPWSTR application_name){
     ZeroMemory(&process_info, sizeof(process_info));
 
     CreateProcessW(
-        NULL,
         application_name,
+        NULL,
         NULL,
         NULL,
         FALSE,
@@ -50,7 +50,7 @@ dll_linked_list* get_executable_dll(LPWSTR application_name){
                 dll_list_pointer = dll_list_pointer->next;
                 break;
             default:
-                break;        
+                break;
         }
 
         ContinueDebugEvent(debug_event->dwProcessId, debug_event->dwThreadId, DBG_CONTINUE);
