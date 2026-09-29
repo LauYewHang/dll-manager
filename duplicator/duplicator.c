@@ -26,8 +26,9 @@ int main(int argc, char **argv){
     //     printHelp();
     //     return EXIT_SUCCESS;
     // }
-
+    printf("1\n");
     int hasError = executeScript(argv[1]);
+    printf("2\n");
 }
 
 void printHelp(){
@@ -39,22 +40,22 @@ int executeScript(const char *filename){
     STARTUPINFOW si = {};
     si.cb = sizeof(si);
     PROCESS_INFORMATION pi;
-    wchar_t *cmd;
+    wchar_t *cmd = L"dummy";
     LPWSTR cmd2;
-    // WINBOOL createdProcess = CreateProcessW(
-    //     NULL,
-    //     cmd,
-    //     NULL,
-    //     NULL,
-    //     FALSE,
-    //     DEBUG_ONLY_THIS_PROCESS,
-    //     NULL,
-    //     NULL,
-    //     &si,
-    //     &pi
-    // );
+    WINBOOL createdProcess = CreateProcessW(
+        NULL,
+        cmd,
+        NULL,
+        NULL,
+        FALSE,
+        DEBUG_ONLY_THIS_PROCESS,
+        NULL,
+        NULL,
+        &si,
+        &pi
+    );
 
-    // printf("created process? %d\n", createdProcess);
+    printf("created process? %d\n", createdProcess);
     printf("last error? %u\n", GetLastError());
 
     HANDLE h = GetCurrentProcess();
@@ -89,23 +90,23 @@ int executeScript(const char *filename){
 
     printf("last error? %u\n", GetLastError());
 
-    DEBUG_EVENT ev;
+    LPDEBUG_EVENT ev;
 
     while (1){
         printf("waiting debug\n");
-        WaitForDebugEvent(&ev, INFINITE);
+        WaitForDebugEvent(ev, INFINITE);
 
-        printf("debug code? %u\n", ev.dwDebugEventCode);
+        printf("debug code? %u\n", ev->dwDebugEventCode);
         // printf("createprocessinfo? %p\n", ev.u.CreateProcessInfo.lpBaseOfImage);
 
-        if (ev.dwDebugEventCode == LOAD_DLL_DEBUG_EVENT){
-            printf("dll address? %p\n", ev.u.LoadDll.lpBaseOfDll);
+        if (ev->dwDebugEventCode == LOAD_DLL_DEBUG_EVENT){
+            printf("dll address? %p\n", ev->u.LoadDll.lpBaseOfDll);
             wchar_t *dllname = (wchar_t*) malloc(1024 * sizeof(wchar_t));
             LPSTR dlname = malloc (sizeof(char) * 1024);
-            DWORD gfea = GetModuleFileNameExW(h, (HMODULE) ev.u.LoadDll.lpBaseOfDll, dllname, 1024);
+            DWORD gfea = GetModuleFileNameExW(NULL, (HMODULE) ev->u.LoadDll.lpBaseOfDll, dllname, 1024);
             printf("dll name: %ls %u\n", dllname, gfea);
             wchar_t dllname2[1024];
-            GetFinalPathNameByHandleW(ev.u.LoadDll.hFile, dllname2, 1024, 0);
+            GetFinalPathNameByHandleW(ev->u.LoadDll.hFile, dllname2, 1024, VOLUME_NAME_DOS);
             printf("dll name2: %ls\n", dllname2);
         }
         
@@ -121,13 +122,13 @@ int executeScript(const char *filename){
         // WINBOOL canwrite = WriteProcessMemory(pi.hProcess, entry, &int3, 1, &bytesread);
         // printf("canwrite? %d\n", canwrite);
         sleep(1);
-        ContinueDebugEvent(ev.dwProcessId, ev.dwThreadId, DBG_CONTINUE);
+        ContinueDebugEvent(ev->dwProcessId, ev->dwThreadId, DBG_CONTINUE);
     }
 
     wchar_t dllname[256];
     int someint = 10;
     //GetFinalPathNameByHandleW(ev.u.LoadDll.hFile, dllname, PATH_MAX, 0);
-    printf("test extract dll: %p\nsomeintp: %p\n", ev.u.LoadDll.lpBaseOfDll, &someint);
+    printf("test extract dll: %p\nsomeintp: %p\n", ev->u.LoadDll.lpBaseOfDll, &someint);
 
     return 0;
 }
